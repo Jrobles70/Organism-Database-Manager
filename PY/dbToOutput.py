@@ -1,4 +1,6 @@
 import sqlite3
+import xlrd
+import time
 
 """
 for each strain I will need:
@@ -8,10 +10,12 @@ for each strain I will need:
 
 class writePheno():
 
-    def __init__(self, output = 'Output/strain.ped', dbName = 'worms.db'):
+    def __init__(self, output = 'Output/strain.ped', dbName = 'worms.db', starvFile = 'data/Edit_uFlx_spreadsheet.xlsx'):
 
         self._db = sqlite3.connect(dbName)
         self._f = open(output, "w+")
+        workbook = xlrd.open_workbook(starvFile)
+        self._sheet = workbook.sheet_by_index(2)
 
     def writeOutput(self, exclude=[]):
         """
@@ -22,7 +26,9 @@ class writePheno():
         Strain name, Individual value, paternal ID, Maternal ID, Sex, Phenotype, Genotype
         paternal, maternal and sex are not important so are set to 0
 
+        Time to run as of 1/30/18: 3 mis 21 secs
         """
+        start = time.time()
         self._c = self._db.cursor()
         idIndex = 0
 
@@ -30,16 +36,27 @@ class writePheno():
 
         seqLine = ""
         survTimes = []
-        self._c.execute("SELECT strain_name, strain_id FROM strain") #grabs list of strains
-        strainLi = self._c.fetchall() #list of strains
 
-        self._c.execute("SELECT strain_id, date FROM starvation")
-        dates = self._c.fetchall()
+        strainsToUse = {}
+        #  count is a Throwaway value to take care of the case of having multiple of the same strain
+        # dictionary searches are very fast so this should make things quicker
+        count = 0
+        for row in range(1, self._sheet.nrows):
+            # for each row in the spreadsheet the strain and date will be added to the dict if it is not in the dict yet
+            strainName = self._sheet.cell_value(row, 1)
+            date = self._sheet.cell_value(row, 2)
+            if (strainName, date) not in strainsToUse.values():
+                strainsToUse[str(count)] = (strainName, date)
+                count += 1
 
         print("adding to file. This may take a few minutes....")
         
-        for strainName, strainID in strainLi:
-            self._c.execute("SELECT date, survival FROM starvation WHERE strain_id = ?", (str(strainID),))
+        for key in strainsToUse:
+            strainName = strainsToUse[key][0]
+            strainDate = strainsToUse[key][1]
+            print(strainName, strainDate)
+            print("Grabbing suvival times")
+            self._c.execute("SELECT survival FROM starvation JOIN strain USING (strain_id) WHERE strain_name = ? and date = ?", (strainName, strainDate))
             
             first = self._c.fetchone() #list of pheno times
            
@@ -49,7 +66,8 @@ class writePheno():
                 survTimes.insert(0, first)
                 
                 #Makes sure there are pheno times for this strain
-                self._c.execute("SELECT value FROM seq WHERE strain_id = ?", (str(strainID),))
+                print("Grabbing Genotype")
+                self._c.execute("SELECT value FROM seq JOIN strain USING (strain_id) WHERE strain_name = ?", (strainName,))
                 first = self._c.fetchone()
                 
                 if first is not None:
@@ -57,39 +75,25 @@ class writePheno():
                     seqLi = self._c.fetchall()
                     seqLi.insert(0, first)
 
-                    seqLine = ""
-                    print("adding " + strainName)
-                    for i in seqLi:
-                    # Makes the whole sequence a tab seperated String
-
-                    #i[0] is location of letter [("C")]
-                    
-                        if i[0] is "?":
-                            seqLine += "00\t"
-                        else:
-                            seqLine += i[0] * 2 + "\t"
-                    
-                    self._c.execute("SELECT individual_id FROM starvation WHERE strain_id = ?", (str(strainID),))
-                    invidID = self._c.fetchall()
-                    
+                    print("prepping " + strainName)
+                    # TODO: CHECK TO MAKE SURE THAT THIS RUNS PROPERLY
+                    seqLine = "\t".join([x[0] * 2 if x[0] != "?" else x[0][:-1] + "00" for x in seqLi])
                     print("done with prep")
-                    for date, phenoTime in survTimes:
-                        if((strainName,date) not in exclude):
-                            self._f.write(constantString.format(strainName, invidID[idIndex][0], phenoTime, seqLine,))
-                        else:
-                            print("{} {} is excluded".format(strainName, date))
-                        idIndex += 1
-                        self._f.write("\n")
 
-                        if(len(invidID) - 1 is idIndex):
-                            idIndex = 0
-
+                    for invidID in range(len(survTimes)):
+                    # TODO: Check to make sure you dont need to exclude any strains
+                        print(strainName, invidID + 1, survTimes[invidID][0], len(seqLine))
+                        self._f.write(constantString.format(strainName, invidID + 1, survTimes[invidID][0], seqLine) + "\n")
+                else:
+                    # TODO: FIND OUT IF EVERY STRAIN HAS A STARVATION AND OR A GENOTYPE
+                    print(strainName + " has no genotype")
             else:
+                #TODO: FIND OUT IF EVERY STRAIN HAS A STARVATION AND OR A GENOTYPE
                 print(strainName + " has no starvation")
-            strainCount = 1    
         self._f.close()
         self._c.close()
-        print("Done!")
+        end = time.time()
+        print("Done! Total time was " + str(end - start))
 
     def grabStrains(self, inputFile):
         print("Opening")
@@ -126,3 +130,9 @@ class writeGeno():
         self._g.close()
         self._c.close()
         print("Done!")
+
+
+if __name__ == "__main__":
+    test = writePheno()
+    test.writeOutput()
+
