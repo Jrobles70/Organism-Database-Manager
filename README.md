@@ -1,5 +1,10 @@
 # Organism Database Manager
 
+## Required Python3 Libraries
+pandas
+sqlite3
+xlrd
+
 ## Update: 2-6-18
 When creating map and ped files the database will only use the strains that are in the 3rd sheet of data in the phenotype spreadsheet. I have also created a general manager that uses consolse commands rather than the gui. I was unhappy with how the gui looked so decided it was easier to use the console.
 
