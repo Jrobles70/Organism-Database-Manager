@@ -10,7 +10,7 @@ for each strain I will need:
 
 class writePheno():
 
-    def __init__(self, output = 'Output/strain.ped', dbName = 'worms.db', starvFile = 'data/Edit_uFlx_spreadsheet.xlsx'):
+    def __init__(self, starvFile = "Data/Edit_uFlx_spreadsheet.xlsx", output = 'Output/strain.ped', dbName = 'worms.db'):
 
         self._db = sqlite3.connect(dbName)
         self._f = open(output, "w+")
@@ -130,9 +130,4 @@ class writeGeno():
         self._g.close()
         self._c.close()
         print("Done!")
-
-
-if __name__ == "__main__":
-    test = writePheno()
-    test.writeOutput()
 

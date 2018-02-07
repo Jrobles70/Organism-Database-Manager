@@ -4,14 +4,15 @@ import xlrd
 from seqToDb import *
 
 class addNewSeq(seqToDB):
-    def __init__(self, newFile= 'data/seq_data_target_lines-jan2017.tsv', db = 'worms.db'):
+    def __init__(self, newFile= 'Data/seq_data_target_lines-jan2017.tsv', db = 'worms.db'):
         conn = sqlite3.connect(db)
-        seqToDB.__init__(self, fi = newFile, dbConn = conn)
+        seqToDB.__init__(self, dbConn = conn)
 
     def addNew(self):
         count = 0
         self.createCursor()
 
+        #Use this to compare the new strain with the existing ones
         self._c.execute("SELECT strain_name FROM strain")
         names = self._c.fetchall()
         strainID = len(names)
@@ -31,9 +32,10 @@ class addNewSeq(seqToDB):
         self.closeCursor()
         print('Done!')
 
+
 class addNewStarve(seqToDB):
     def __init__(self, newFile, db = 'worms.db'):
-        seqToDB.__init__(self, starvFile = newFile, dbName = db)
+        seqToDB.__init__(self, sqlite3.connect(db), starvFile = newFile)
         
     def addStarvation(self):
         # Adds starvation file to your database
@@ -63,7 +65,7 @@ class addNewStarve(seqToDB):
                 self._c.execute('INSERT INTO starvation VALUES(?,?,?,?,?,?,?,?)', (self._sheet.cell_value(row, 0), strainId, self._sheet.cell_value(row, 2), self._sheet.cell_value(row, 3), self._sheet.cell_value(row, 4), self._sheet.cell_value(row, 5), self._sheet.cell_value(row, 6), self._sheet.cell_value(row, 7)))
                 print("Adding " + currStrain)
             else:
-                print(currStrain + " not added")
+                print("{} on {} is already in db".format(currStrain, self._sheet.cell_value(row, 2)))
 
         self.closeCursor()
         print('Done!')

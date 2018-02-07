@@ -1,6 +1,7 @@
 import pandas as pd
 import sqlite3
 import xlrd
+from os import listdir
 
 # Need to add: Values from starvation excel
 #              Finding more than one similar value in strains
@@ -9,11 +10,16 @@ class seqToDB:
     # This class takes in a string file name (defaulted to current data) and dbName
     # and adds it to a database
     # Files are given a default value to match location in my computer for now
-    def __init__(self, fi, dbConn=None, starvFile = 'data/Edit_uFlx_spreadsheet.xlsx'):
+    def __init__(self, dbConn, starvFile = 'Data/Edit_uFlx_spreadsheet.xlsx'):
         self._db = dbConn
         self.createCursor()
+        # Creates workbook for grabbing data from the excel sheet
+        workbook = xlrd.open_workbook(starvFile)
+        self._sheet = workbook.sheet_by_index(2)
 
-        df = pd.read_csv(fi, delimiter='\t')
+    def prepDB(self, tsvFile):
+
+        df = pd.read_csv(tsvFile, delimiter='\t')
         # ref1 is the column of all position values
         df1 = df.set_index('pos_ws220').T
         self._df2 = df1.drop(df1.index[0])
@@ -41,11 +47,7 @@ class seqToDB:
                 self._chrome.append(chromOptions[val])
                     
         self._positions = [str(val) for index, row in pos.iterrows() for val in row]
-        
-                
-        # Creates workbook for grabbing data from the excel sheet
-        workbook = xlrd.open_workbook(starvFile)
-        self._sheet = workbook.sheet_by_index(2)
+
         
         # Creates the sequence and starvation table
         self._c.execute('CREATE TABLE IF NOT EXISTS strain(strain_id INTEGER PRIMARY KEY, strain_name TEXT)')
@@ -71,6 +73,7 @@ class seqToDB:
         print('Adding file to db...')
         
         for index, row in self._df2.iterrows():
+            print("Adding " + index)
             self._c.execute('INSERT INTO strain VALUES(?,?)', (strainID, index))
             # Index is the name of the Strain and row is the whole sequence
             for val in row:
@@ -156,16 +159,26 @@ class seqToDB:
         except FileNotFoundError:
             print("No labsource file for {}".format(vcf.split(".")[0]))
         strain = vcf.split(".")[0]
-        print("adding {}".format(strain))
-        self.createCursor()
 
+
+        self.createCursor()
+        # Checking to see if strain is in db already
+        self._c.execute("SELECT strain_id FROM strain where strain_name = ?", (strain,))
+        test = self._c.fetchall()
+        if len(test) > 0:
+            print("{} is already in db skipping...".format(strain))
+            self.closeCursor()
+            f.close()
+            return
+
+        print("adding {}".format(strain))
         self._c.execute("SELECT * FROM strain")
         strainCount = len(self._c.fetchall())
         self._c.execute('INSERT INTO strain VALUES(?,?)', (strainCount, strain))
 
         for line in f:
             if line[0] is not "#":
-                vals = line.split(" ")
+                vals = line.split()
                 chrom = vals[0]
                 val = vals[4]
                 pos = vals[1]
@@ -177,8 +190,3 @@ class seqToDB:
 
         self.closeCursor()
         f.close()
-
-
-if __name__ == "__main__":
-    test = seqToDB(dbConn=sqlite3.connect("worms.db"))
-    test.readVCF("VCFEX.txt")
