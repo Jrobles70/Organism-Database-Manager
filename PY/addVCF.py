@@ -11,7 +11,7 @@ def add(folder):
         return
     print("adding all .vcf files in {}".format(folder))
     for filename in listdir(folder):
-        if ".vcf" in filename:
+        if ".vcf" == filename[-4:]:
             addNew.readVCF(folder, filename)
     print("Done!")
 
