@@ -154,11 +154,11 @@ class seqToDB:
             lab = "{}/labsource.txt".format(folder)
             g = open(lab, "r")
             labName = g.read()
-            strain = "{}_{}".format(vcf.split(".")[0], labName)
+            strain = "{}_{}".format(vcf.split("_")[0], labName)
             g.close()
         except FileNotFoundError:
-            print("No labsource file for {}".format(vcf.split(".")[0]))
-        strain = vcf.split(".")[0]
+            print("No labsource file for {}".format(vcf.split("_")[0]))
+        strain = vcf.split("_")[0]
 
 
         self.createCursor()
