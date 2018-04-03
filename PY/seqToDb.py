@@ -157,13 +157,13 @@ class seqToDB:
             strain = "{}_{}".format(vcf.split("_")[0], labName)
             g.close()
         except FileNotFoundError:
-            print("No labsource file for {}".format(vcf.split("_")[0]))
+            pass
         strain = vcf.split("_")[0]
 
 
         self.createCursor()
         # Checking to see if strain is in db already
-        self._c.execute("SELECT strain_id FROM strain where strain_name = ?", (strain,))
+        self._c.execute("SELECT value FROM seq JOIN strain USING (strain_id) where strain_name = ? AND position = 855", (strain,))
         test = self._c.fetchall()
         if len(test) > 0:
             print("{} is already in db skipping...".format(strain))
