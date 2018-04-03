@@ -30,7 +30,10 @@ def main(new_db, add_vcf, add_tsv, add_strv, ped, map, db_name, db_strv):
         new.addStarvation()
 
     elif add_vcf is not "":
-        add(add_vcf)
+        if db_name is not "":
+            add(add_vcf, db_name)
+        else:
+            add(add_vcf)
     elif add_tsv is not "":
         seq = addNewSeq(add_tsv, db_name)
         seq.prepDB(add_tsv)

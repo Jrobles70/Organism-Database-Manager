@@ -2,8 +2,8 @@ from os import listdir
 import argparse
 from addNewData import addNewSeq
 
-def add(folder):
-    addNew = addNewSeq()
+def add(folder, db_name = 'worms.db'):
+    addNew = addNewSeq(db=db_name)
     try:
         listdir(folder)
     except FileNotFoundError:
