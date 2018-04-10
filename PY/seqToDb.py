@@ -86,6 +86,61 @@ class seqToDB:
         self.closeCursor()
         print('Done!')
 
+    def addRIL(self, rilFile):
+        # Goes through the seq file and adds it into your database
+        print("starting")
+        df = pd.read_csv(rilFile, delimiter='\t')
+        print("done reading")
+        # ref1 is the column of all position values
+        print("setting index")
+        df1 = df.set_index('pos').T
+        _df2 = df1.drop(df1.index[0:3])
+        print("index set")
+
+        # chroPos is used to grab pos and chrom values
+        # ref2 is the first sequence
+        print("prearing chropos")
+        chroPos = df.set_index('ref').T
+        chrom = chroPos.drop(chroPos.index[1:])
+        pos = chroPos.drop(chroPos.index[2:])
+        pos = pos.drop(pos.index[0])
+
+        # Creates an array to hold all the position values as string
+        print("preparing position")
+        self._chrome = [str(val) for index, row in chrom.iterrows() for val in row]
+        self._positions = [str(val) for index, row in pos.iterrows() for val in row]
+        print("Last position is {}".format(self._positions[-1]))
+
+
+        print("preparing to add")
+        count = 0
+        self.createCursor()
+        self._c.execute(
+            'CREATE TABLE IF NOT EXISTS RIL(position TEXT, chrom TEXT, strain_id INTEGER, value TEXT, FOREIGN KEY(strain_id) REFERENCES strain(strain_id))')
+        print('Adding file to db...')
+        for index, row in _df2.iterrows():
+            print(index)
+            self._c.execute("SELECT strain_id FROM strain WHERE strain_name = ?", (index,))
+            strainID = self._c.fetchall()
+            if strainID == []:
+                self._c.execute("SELECT strain_id FROM strain")
+                strainID = len(self._c.fetchall())
+                self._c.execute('INSERT INTO strain VALUES(?,?)', (strainID, index))
+            else:
+                strainID = strainID[0][0]
+            # Index is the name of the Strain and row is the whole sequence
+            for val in row:
+                self._c.execute('INSERT INTO RIL VALUES(?,?,?,?)',
+                                (self._positions[count], self._chrome[count], strainID, val))
+                print(self._positions[count], self._chrome[count], strainID, val)
+                count += 1
+
+            strainID += 1
+            count = 0
+
+        self.closeCursor()
+        print('Done!')
+
     def addStarvation(self):
 
         
