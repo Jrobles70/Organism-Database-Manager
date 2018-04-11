@@ -109,7 +109,8 @@ class seqToDB:
         print("preparing position")
         self._chrome = [str(val) for index, row in chrom.iterrows() for val in row]
         self._positions = [str(val) for index, row in pos.iterrows() for val in row]
-        print("Last position is {}".format(self._positions[-1]))
+        print("Len position is {}".format(len(self._positions)))
+
 
 
         print("preparing to add")
@@ -134,7 +135,6 @@ class seqToDB:
                 self._c.execute('INSERT INTO {}RIL VALUES(?,?,?)'.format(index),
                                 (self._positions[count], self._chrome[count], val))
                 count += 1
-
             strainID += 1
             count = 0
 

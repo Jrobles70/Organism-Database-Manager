@@ -204,7 +204,7 @@ class writeGeno():
         self._c.execute("SELECT position, chrom FROM seq WHERE strain_id = 2")
         fileFormat = "{}\t{}\t0\t{}" # (chromosome, snpID, genetic distance, base pair pos)
         allValues = self._c.fetchall()
-
+        print(len(allValues))
         for pos, chrom in allValues:
             self._g.write(fileFormat.format(chrom, chrom + "_" + pos, pos) + "\n")
 

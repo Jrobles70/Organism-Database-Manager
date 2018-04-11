@@ -54,6 +54,9 @@ def main(new_db, add_vcf, add_tsv, add_strv, ped, pedr, map, mapr, db_name, db_s
     elif map:
         write_geno = writeGeno()
         write_geno.writeOutput()
+    elif mapr:
+        write_geno = writeGeno()
+        write_geno.writeOutputRIL()
     elif add_ril is not "":
         seq = addNewSeq(add_ril, db_name)
         seq.addRIL(add_ril)
