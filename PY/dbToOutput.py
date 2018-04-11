@@ -83,7 +83,6 @@ class writePheno():
 
                     for invidID in range(len(survTimes)):
                     # TODO: Check to make sure you dont need to exclude any strains
-                        print(strainName, invidID + 1, survTimes[invidID][0], len(seqLine))
                         self._f.write(constantString.format(strainName, invidID + 1, survTimes[invidID][0], seqLine) + "\n")
                 else:
                     # TODO: FIND OUT IF EVERY STRAIN HAS A STARVATION AND OR A GENOTYPE
@@ -107,6 +106,7 @@ class writePheno():
 
         Time to run as of 1/30/18: 3 mis 21 secs
         """
+        print("starting RIL output")
         start = time.time()
         self._c = self._db.cursor()
         idIndex = 0
@@ -134,7 +134,6 @@ class writePheno():
             strainName = strainsToUse[key][0]
             strainDate = strainsToUse[key][1]
             print(strainName, strainDate)
-            print("Grabbing suvival times")
             self._c.execute(
                 "SELECT survival FROM starvation JOIN strain USING (strain_id) WHERE strain_name = ? and date = ?",
                 (strainName, strainDate))
@@ -147,9 +146,11 @@ class writePheno():
                 survTimes.insert(0, first)
 
                 # Makes sure there are pheno times for this strain
-                print("Grabbing Genotype")
-                self._c.execute("SELECT value FROM RIL JOIN strain USING (strain_id) WHERE strain_name = ?",
-                                (strainName,))
+                try:
+                    self._c.execute("SELECT value FROM {}RIL".format(strainName))
+                except sqlite3.OperationalError:
+                    print("{} has no RIL data".format(strainName))
+                    continue
                 first = self._c.fetchone()
 
                 if first is not None:
@@ -157,14 +158,11 @@ class writePheno():
                     seqLi = self._c.fetchall()
                     seqLi.insert(0, first)
 
-                    print("prepping " + strainName)
                     # TODO: CHECK TO MAKE SURE THAT THIS RUNS PROPERLY
                     seqLine = "\t".join([str(ceil(float(x[0])+1)) * 2 if '.' in x[0] else str((x[0]+1) * 2) if x[0] in '01' else x[0] * 2 for x in seqLi])
-                    print("done with prep")
 
                     for invidID in range(len(survTimes)):
                         # TODO: Check to make sure you dont need to exclude any strains
-                        print(strainName, invidID + 1, survTimes[invidID][0], len(seqLine))
                         self._f.write(
                             constantString.format(strainName, invidID + 1, survTimes[invidID][0], seqLine) + "\n")
                 else:

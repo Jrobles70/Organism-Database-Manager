@@ -115,8 +115,6 @@ class seqToDB:
         print("preparing to add")
         count = 0
         self.createCursor()
-        self._c.execute(
-            'CREATE TABLE IF NOT EXISTS RIL(position TEXT, chrom TEXT, strain_id INTEGER, value TEXT, FOREIGN KEY(strain_id) REFERENCES strain(strain_id))')
         print('Adding file to db...')
         for index, row in _df2.iterrows():
             print(index)
@@ -130,9 +128,11 @@ class seqToDB:
                 strainID = strainID[0][0]
             # Index is the name of the Strain and row is the whole sequence
             for val in row:
-                self._c.execute('INSERT INTO RIL VALUES(?,?,?,?)',
-                                (self._positions[count], self._chrome[count], strainID, val))
-                print(self._positions[count], self._chrome[count], strainID, val)
+                self._c.execute(
+            'CREATE TABLE IF NOT EXISTS {}RIL(position TEXT, chrom TEXT, value TEXT)'.format(index))
+
+                self._c.execute('INSERT INTO {}RIL VALUES(?,?,?)'.format(index),
+                                (self._positions[count], self._chrome[count], val))
                 count += 1
 
             strainID += 1
@@ -152,7 +152,7 @@ class seqToDB:
         strainCount = len(self._c.fetchall())
 
         # Adds in value from each row
-        for row in range(1, self._sheet.nrows):
+        for row in range(self._sheet.nrows):
             currStrain = self._sheet.cell_value(row, 1)
             self._c.execute("SELECT strain_id FROM strain WHERE strain_name = ?", (currStrain,))
             result = self._c.fetchall()
@@ -163,7 +163,7 @@ class seqToDB:
                 strainCount += 1
             else:
                 strainId = result[0][0]
-        
+            print(self._sheet.cell_value(row, 0), strainId)
             self._c.execute('INSERT INTO starvation VALUES(?,?,?,?,?,?,?,?)', (self._sheet.cell_value(row, 0), strainId, self._sheet.cell_value(row, 2), self._sheet.cell_value(row, 3), self._sheet.cell_value(row, 4), self._sheet.cell_value(row, 5), self._sheet.cell_value(row, 6), self._sheet.cell_value(row, 7)))
 
         self.closeCursor()
