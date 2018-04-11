@@ -197,11 +197,25 @@ class writeGeno():
 
         self._db = sqlite3.connect(dbName)
         self._g = open(output, "w+")
-    
+
     def writeOutput(self):
         self._c = self._db.cursor()
         print("Writing to file....")
         self._c.execute("SELECT position, chrom FROM seq WHERE strain_id = 2")
+        fileFormat = "{}\t{}\t0\t{}" # (chromosome, snpID, genetic distance, base pair pos)
+        allValues = self._c.fetchall()
+
+        for pos, chrom in allValues:
+            self._g.write(fileFormat.format(chrom, chrom + "_" + pos, pos) + "\n")
+
+        self._g.close()
+        self._c.close()
+        print("Done!")
+
+    def writeOutputRIL(self):
+        self._c = self._db.cursor()
+        print("Writing to file....")
+        self._c.execute("SELECT position, chrom FROM A6140L100RIL")
         fileFormat = "{}\t{}\t0\t{}" # (chromosome, snpID, genetic distance, base pair pos)
         allValues = self._c.fetchall()
 

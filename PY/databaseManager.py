@@ -19,12 +19,13 @@ from dbToOutput import writePheno, writeGeno
 @click.option('--pedr', '-PR', default="", help='Takes the location of the Phenotype file to create ped file for PLINK. Use -name '
                                   ' to specify the name if needed')
 @click.option('--map', '-M', default=False, is_flag=True ,help='Creates map file for PLINK. No arguments needed')
+@click.option('--mapr', '-MR', default=False, is_flag=True ,help='Creates map file for PLINK using RIL data. No arguments needed')
 @click.option('--db_name', '-name', default='worms.db', help='Creates a custom name for db using -newdb')
 @click.option('--db_strv', '-strv', default='Data/Edit_uFlx_spreadsheet.xlsx', help='Takes the location of the phenotype data to use to create new_db')
 @click.option('--add_ril', '-addril', default="", help='Takes the location of the RIL data to add to DB')
 
 
-def main(new_db, add_vcf, add_tsv, add_strv, ped, pedr, map, db_name, db_strv, add_ril):
+def main(new_db, add_vcf, add_tsv, add_strv, ped, pedr, map, mapr, db_name, db_strv, add_ril):
     if new_db is not "":
         conn = sqlite3.connect(db_name)
         new = seqToDB(conn, db_strv)
