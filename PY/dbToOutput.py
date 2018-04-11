@@ -218,6 +218,7 @@ class writeGeno():
         self._c.execute("SELECT position, chrom FROM A6140L100RIL")
         fileFormat = "{}\t{}\t0\t{}" # (chromosome, snpID, genetic distance, base pair pos)
         allValues = self._c.fetchall()
+        print(len(allValues))
 
         for pos, chrom in allValues:
             self._g.write(fileFormat.format(chrom, chrom + "_" + pos, pos) + "\n")
