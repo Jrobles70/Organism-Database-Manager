@@ -8,6 +8,7 @@ class addNewSeq(seqToDB):
         conn = sqlite3.connect(db)
         seqToDB.__init__(self, dbConn = conn)
 
+
     def addNew(self):
         count = 0
         self.createCursor()

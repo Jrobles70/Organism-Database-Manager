@@ -4,6 +4,7 @@ from seqToDb import seqToDB
 from addVCF import add
 from addNewData import addNewSeq, addNewStarve
 from dbToOutput import writePheno, writeGeno
+from dbSearch import search
 
 @click.command()
 @click.option('--new_db', '-newdb', default="", help="Create a new database using a genotype TSV file. "
@@ -23,9 +24,11 @@ from dbToOutput import writePheno, writeGeno
 @click.option('--db_name', '-name', default='worms.db', help='Creates a custom name for db using -newdb')
 @click.option('--db_strv', '-strv', default='Data/Edit_uFlx_spreadsheet.xlsx', help='Takes the location of the phenotype data to use to create new_db')
 @click.option('--add_ril', '-addril', default="", help='Takes the location of the RIL data to add to DB')
+@click.option('--searchp', '-search', default="" ,help='Takes position number and chromosome as input and searches database according to Heathers spreadsheet. Use with -chrome to add chromosome you are searching on')
+@click.option('--chrome', '-chrome', default="",help='Use with -search to add chromosome you want to look at')
 
 
-def main(new_db, add_vcf, add_tsv, add_strv, ped, pedr, map, mapr, db_name, db_strv, add_ril):
+def main(new_db, add_vcf, add_tsv, add_strv, ped, pedr, map, mapr, db_name, db_strv, add_ril, searchp, chrome):
     if new_db is not "":
         conn = sqlite3.connect(db_name)
         new = seqToDB(conn, db_strv)
@@ -60,6 +63,8 @@ def main(new_db, add_vcf, add_tsv, add_strv, ped, pedr, map, mapr, db_name, db_s
     elif add_ril is not "":
         seq = addNewSeq(add_ril, db_name)
         seq.addRIL(add_ril)
+    elif (searchp, chrome) is not ("", ""):
+        search(chrome, searchp)
 
 
 
