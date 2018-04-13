@@ -1,7 +1,7 @@
 import sqlite3
 import xlrd
 
-def search(chromosome, position, db='worms.db', starvFile='Data/Edit_uFlx_spreadsheet.xlsx'):
+def search(chromosome, position, db='worms.db', starvFile='PY/Data/Edit_uFlx_spreadsheet.xlsx'):
     conn = sqlite3.connect(db)
     c = conn.cursor()
     workbook = xlrd.open_workbook(starvFile)
