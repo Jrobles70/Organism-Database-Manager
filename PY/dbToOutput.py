@@ -159,7 +159,8 @@ class writePheno():
                     seqLi.insert(0, first)
 
                     # TODO: CHECK TO MAKE SURE THAT THIS RUNS PROPERLY
-                    seqLine = "\t".join([str(ceil(float(x[0])+1)) * 2 if '.' in x[0] else str((x[0]+1) * 2) if x[0] in '01' else x[0] * 2 for x in seqLi])
+                    seqLine = "\t".join(['11' if '0.0' == x[0] else '22' if x[0] == '1.0' else x[0][:-3] + '12' for x in seqLi])
+                    print(seqLine)
 
                     for invidID in range(len(survTimes)):
                         # TODO: Check to make sure you dont need to exclude any strains
